@@ -36,6 +36,8 @@ class MurderCommand extends Command {
       const { mod_log_channel_id } = this.context.client.db.get(message.guild.id);
       const modlogChannel = message.guild.channels.resolve(mod_log_channel_id);
 
+      await message.guild.members.ban(user);
+
       return modlogChannel.send(`${user.username}(\`${user.id}\`) did an oopsie woopsie and has been banned${reason ? ` for ${reason}.` : "."} Forever.`);
     } else {
       return message.channel.send(`You did not say 'yes', you said '${result.content}' - they live to see another day.`);
