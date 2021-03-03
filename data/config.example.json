@@ -1,0 +1,19 @@
+{
+  "bot": {
+    "defaultPrefix": "?",
+    "description": "Every time someone is jailed using strikesy, they gain a strike. At certain numbers of strikes, punishments automatically occur.\nPLEASE send ALL complaints and suggestions to UnholyRazzberry#8555, through DM.",
+    "invite": "https://discord.gg/HubfhE9",
+    "owners": ["an array of user ids", "people who may use special commands", "like reload and eval"]
+  },
+  "database": {
+    "cache": false,
+    "compression": false,
+    "encoding": "msgpack",
+    "path": "./data/database.db",
+    "useVersions": false
+  },
+  "discord": {
+    "intents": ["DIRECT_MESSAGES", "GUILDS", "GUILD_BANS", "GUILD_EMOJIS", "GUILD_MEMBERS", "GUILD_MESSAGES"],
+    "token": "the token of the bot!!!!!!!!!!!!!!"
+  }
+}
