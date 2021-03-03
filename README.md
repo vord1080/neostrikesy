@@ -18,4 +18,4 @@ npm install
 then fill in config.json and start the bot like so:
 ```bash
 node src/index.js
-```
+``` 
