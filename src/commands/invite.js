@@ -13,11 +13,11 @@ class InviteCommand extends Command {
     const { botPublic, id } = await this.context.client.fetchApplication();
 
     if (botPublic)
-      return await message.channel.send([
+      return message.channel.send([
         `Add ${this.context.client.user.username} to your server:`,
         `<https://discord.com/oauth2/authorize?scope=applications.commands+bot&client_id=${id}>`,
       ]);
-    else return await message.channel.send(`${this.context.client.user.username} is a private bot. Only the owner can add it to other servers.`);
+    else return message.channel.send(`${this.context.client.user.username} is a private bot. Only the owner can add it to other servers.`);
   }
 }
 

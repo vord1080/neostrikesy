@@ -10,7 +10,7 @@ class PrefixCommand extends Command {
   }
 
   async run(message, args) {
-    return await message.channel.send(`My prefix is '\`${this.context.client.fetchPrefix(message)}\`'`);
+    return message.channel.send(`My prefix is '\`${this.context.client.fetchPrefix(message)}\`'`);
   }
 }
 

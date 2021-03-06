@@ -15,16 +15,17 @@ class StatsCommand extends Command {
 
   async run(message) {
     return message.channel.send([
-      `**Cached Guilds**: ${this.context.client.guilds.cache.size}`,
-      `**Cached Channels**: ${this.context.client.channels.cache.size}`,
       `**Cached Users**: ${this.context.client.users.cache.size}`,
+      `**Cached Guilds**: ${this.context.client.guilds.cache.size}`,
       `**Cached Emojis**: ${this.context.client.emojis.cache.size}`,
+      `**Cached Invites**: ${this.context.client.invites.cache.size}`,
+      `**Cached Channels**: ${this.context.client.channels.cache.size}`,
       "",
       `**Time since last \`READY\` event**: ${this.context.client.uptime}ms`,
       "",
-      `**Memory Usage**: ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)} MB`,
       `**Sapphire**: v${sapphireVersion}`,
       `**Discord.js**: v${djsVersion}`,
+      `**Memory Usage**: ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)} MB`,
     ]);
   }
 }
