@@ -21,7 +21,7 @@ class ConfigCommand extends Command {
       const newValue = await args.rest(configItem.type);
 
       await this.context.client.db.set(message.guild.id, {
-        [configItem.key]: configItem.type === "string" ? newValue : newValue.id,
+        [configItem.key]: configItem.accessor ? newValue[configItem.accessor] : newValue,
       });
     }
 
@@ -50,6 +50,9 @@ class ConfigCommand extends Command {
     if (!config.mod_log_channel_id && !modlogChannel) configMessage.push(`**modlog**: not set`);
     else if (config.mod_log_channel_id && !modlogChannel) configMessage.push(`**modlog**: \`${config.mod_log_channel_id}\` used to exist but does not anymore`);
     else if (config.mod_log_channel_id && modlogChannel) configMessage.push(`**modlog**: \`${modlogChannel.name}\` (${modlogChannel.id})`);
+
+    if (!config.invite_filter) configMessage.push(`**filterinvites**: \`false\``);
+    else if (config.invite_filter) configMessage.push(`**filterinvites**: \`true\``);
 
     configMessage.push(`**prefix**: \`${prefix}\``);
 
