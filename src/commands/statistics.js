@@ -1,7 +1,7 @@
 const Command = require("../structures/ExtendedCommand");
 
 const { version: djsVersion } = require("discord.js");
-const { version: sapphireVersion } = require("@sapphire/framework/package.json");
+const { version: sapphireVersion } = require("@sapphire/framework");
 
 class StatsCommand extends Command {
   constructor(context) {
