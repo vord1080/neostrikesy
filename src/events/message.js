@@ -6,28 +6,22 @@ class MessageCreateEvent extends Event {
   }
 
   async run(message) {
-    if (!message.guild) return;
+    if (!message.content || !message.guild || !message.deletable) return;
 
     const { invite_filter } = this.context.client.db.get(message.guild.id) || {};
 
-    if (invite_filter) {
-      const matches = message.content.matchAll(/discord(?:(?:app)?\.com\/invite|\.gg(?:\/invite)?)\/([\w-]{2,255})/gis);
+    if (!invite_filter) return;
 
-      for (const match of matches) {
-        try {
-          const invite = await this.context.client.invites.fetch(match[1]);
+    const matches = message.content.matchAll(/discord(?:(?:app)?\.com\/invite|\.gg(?:\/invite)?)\/([\w-]{2,255})/gis);
 
-          if (invite.guild?.id !== message.guild.id) {
-            message.delete({ reason: "Invite Filter" });
-            break;
-          }
-        } catch (error) {
-          if (error.message !== "Unknown Invite") {
-            message.delete();
-            console.log(error);
-          }
-        }
-      }
+    for (const match of matches) {
+      const invite = await this.context.client.invites.fetch(match[1]).catch((e) => {});
+
+      if (!invite) return;
+      if (invite.guild?.id === message.guild.id) return;
+
+      message.delete({ reason: "Invite Filter" });
+      break;
     }
   }
 }
