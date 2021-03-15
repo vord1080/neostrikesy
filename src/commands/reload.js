@@ -4,27 +4,26 @@ class ReloadCommand extends Command {
   constructor(context) {
     super(context, {
       name: "reload",
-      aliases: ["r"],
       usage: "[command name or alias]",
+      aliases: ["r"],
       description: "Reloads a command",
       preconditions: ["OwnerOnly"],
     });
   }
 
   async run(message, args) {
-    const command = await args.pickResult("command");
+    const { value, error } = await args.pickResult("command");
 
-    if (!command.success) {
-      return message.channel.send(`Command not found.`);
-    }
+    if (error?.identifier === "argsMissing") return message.channel.send(`No command provided.`);
+    if (error?.identifier === "unknownCommand") return message.channel.send(`No command called '\`${error.parameter}\`' found.`);
 
     try {
-      var [reloaded] = await this.context.client.stores.get("commands").load(command.value.path);
+      await value.reload();
     } catch (error) {
-      return message.channel.send(`Failed to reload command '${command.value.name}': ${error.message || error.split("\n")[0]}`);
+      return message.channel.send(`Failed to reload command '${value.name}': ${error.message || error.split("\n")[0]}`);
     }
 
-    return message.channel.send(`Reloaded command '${reloaded.name}'.`);
+    return message.channel.send(`Reloaded command '${value.name}.'`);
   }
 }
 
