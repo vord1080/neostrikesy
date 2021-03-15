@@ -1,15 +1,15 @@
-const { Argument, UserError } = require("@sapphire/framework");
+const { Argument } = require("@sapphire/framework");
 
 class CommandArgument extends Argument {
   constructor(context) {
     super(context, { name: "command" });
   }
 
-  async run(argument) {
-    const command = this.context.stores.get("commands").get(argument);
+  async run(parameter, context) {
+    const command = this.context.stores.get("commands").get(parameter);
 
     if (command) return this.ok(command);
-    else return this.error(new UserError({ identifier: "ArgumentCommandUnknownCommand", message: "The argument did not resolve to a command.", context: argument }));
+    else return this.error({ parameter, identifier: "unknownCommand", message: "The argument did not resolve to a command.", context });
   }
 }
 
