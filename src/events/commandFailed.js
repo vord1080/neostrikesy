@@ -6,7 +6,7 @@ class CommandFailedEvent extends Event {
   }
 
   async run(error, { message }) {
-    return message.channel.send(`Something went wrong. The problem: \`${error.message}\``);
+    return message.channel.send(`Something went wrong. The problem: \`${error.message.replaceAll("\n", " ")}\``);
   }
 }
 

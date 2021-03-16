@@ -1,5 +1,7 @@
 const Command = require("../structures/ExtendedCommand");
 
+const { Util } = require("discord.js");
+
 const { bot } = require("../../data/config.json");
 
 class HelpCommand extends Command {
@@ -13,15 +15,14 @@ class HelpCommand extends Command {
   }
 
   async run(message, args) {
-    const { value: command, error: commandError } = await args.pickResult("command");
+    const { value, error, success } = await args.pickResult("command");
 
-    if (commandError?.identifier === "ArgumentCommandUnknownCommand") return message.channel.send(`No command called '\`${commandError.context}\`' found.`);
-    else if (command) {
-      return message.channel.send(
-        [`${this.context.client.fetchPrefix(message) + command.name} ${command.usage}\n`, command.description, `Aliases: ${command.aliases.join(", ") || "none"}`],
-        { code: true }
-      );
-    }
+    if (error?.identifier === "unknownCommand") return message.channel.send(`No command called '${Util.escapeMarkdown(error.parameter)}' found.`);
+
+    if (success)
+      return message.channel.send([`${this.context.client.fetchPrefix(message) + [value.name, ...value.aliases].join(",")} ${value.usage}\n`, value.description], {
+        code: true,
+      });
 
     const commands = this.context.client.stores.get("commands").array();
 
@@ -55,7 +56,7 @@ class HelpCommand extends Command {
 
     final.push(`\nType ${this.context.client.fetchPrefix(message)}help command for more info on a command.`);
 
-    return message.channel.send(final, { code: true });
+    return message.channel.send(final, { code: true, split: { char: "\n" } });
   }
 }
 

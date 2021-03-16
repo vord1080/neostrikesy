@@ -7,6 +7,7 @@ class MurderCommand extends Command {
     super(context, {
       name: "murder",
       usage: "[user to ban] [reason]",
+      quotes: [],
       category: "moderation",
       aliases: ["ban"],
       description: "Bans no matter what, say `yes` to confirm the ban",
@@ -16,9 +17,9 @@ class MurderCommand extends Command {
 
   async run(message, args) {
     const user = await args.pick("user");
-    const { value: reason } = await args.restResult("string");
+    const { value: reason } = await args.pickResult("string");
 
-    const member = await message.guild?.members?.fetch(user);
+    const member = await message.guild?.members?.fetch(user).catch((e) => {});
 
     if (member?.roles?.highest?.position > message.member.roles.highest.position) return message.channel.send(`Member has a higher role than you.`);
 
@@ -28,20 +29,19 @@ class MurderCommand extends Command {
       { timeout: 60 * 1000 }
     );
 
-    const result = await handler.run(message.channel, message.author);
+    const result = await handler.run(message.channel, message.author).catch((e) => {
+      throw new Error("Collector timed out.");
+    });
 
-    if (result.content === "yes") {
-      message.channel.send("Removing their privilege to life.");
+    if (result.content !== "yes") return message.channel.send(`You did not say 'yes', you said '${result.content}' - they live to see another day.`);
 
-      const { mod_log_channel_id } = this.context.client.db.get(message.guild.id);
-      const modlogChannel = message.guild.channels.resolve(mod_log_channel_id);
+    message.channel.send("Removing their privilege to life.");
 
-      await message.guild.members.ban(user);
+    const { modlog } = this.context.client.db.getGuild(message.guild.id);
 
-      return modlogChannel.send(`${user.username}(\`${user.id}\`) did an oopsie woopsie and has been banned${reason ? ` for ${reason}.` : "."} Forever.`);
-    } else {
-      return message.channel.send(`You did not say 'yes', you said '${result.content}' - they live to see another day.`);
-    }
+    await message.guild.members.ban(user);
+
+    return modlog.send(`${user.username}(\`${user.id}\`) did an oopsie woopsie and has been banned${reason ? ` for ${reason}.` : "."} Forever.`);
   }
 }
 

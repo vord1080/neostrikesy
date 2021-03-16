@@ -1,6 +1,6 @@
-const Command = require("../structures/ExtendedCommand");
+const Command = require("../structures/ExtendedSubCommand.js");
 
-// hellish. rewrite later
+const { Util } = require("discord.js");
 
 class ConfigCommand extends Command {
   constructor(context) {
@@ -10,51 +10,108 @@ class ConfigCommand extends Command {
       aliases: ["configuration"],
       category: "configuration",
       description: "Sends the current config of the server",
+      subCommands: ["modrole", "jailrole", "solitaryrole", "modlog", "filterinvites", "prefix", { input: "show", default: true }],
       preconditions: ["GuildOnly", "ManageGuildPermission"],
     });
   }
 
-  async run(message, args) {
-    const { value: configItem } = await args.pickResult("config");
+  async modrole(message, args) {
+    const { value, error } = await args.pickResult("role");
 
-    if (configItem) {
-      const newValue = await args.rest(configItem.type);
+    if (error?.identifier === "argsMissing") return message.channel.send(`No role provided.`);
+    if (error?.identifier === "role") return message.channel.send(`No role called '${Util.escapeMarkdown(error.parameter)}' found.`);
 
-      await this.context.client.db.set(message.guild.id, {
-        [configItem.key]: configItem.accessor ? newValue[configItem.accessor] : newValue,
-      });
-    }
+    await this.context.client.db.set(message.guild.id, {
+      mod_role_id: value.id,
+    });
 
-    const config = this.context.client.db.get(message.guild.id) || {};
+    return message.channel.send(`Set Moderator role to **${value.name}**`);
+  }
+
+  async jailrole(message, args) {
+    const { value, error } = await args.pickResult("role");
+
+    if (error?.identifier === "argsMissing") return message.channel.send(`No role provided.`);
+    if (error?.identifier === "role") return message.channel.send(`No role called '${Util.escapeMarkdown(error.parameter)}' found.`);
+
+    await this.context.client.db.set(message.guild.id, {
+      jail_role_id: value.id,
+    });
+
+    return message.channel.send(`Set Jail role to **${value.name}**`);
+  }
+
+  async solitaryrole(message, args) {
+    const { value, error } = await args.pickResult("role");
+
+    if (error?.identifier === "argsMissing") return message.channel.send(`No role provided.`);
+    if (error?.identifier === "role") return message.channel.send(`No role called '${Util.escapeMarkdown(error.parameter)}' found.`);
+
+    await this.context.client.db.set(message.guild.id, {
+      solitary_role_id: value.id,
+    });
+
+    return message.channel.send(`Set Solitary role to **${value.name}**`);
+  }
+
+  async modlog(message, args) {
+    const { value, error } = await args.pickResult("textChannel");
+
+    if (error?.identifier === "argsMissing") return message.channel.send(`No channel provided.`);
+    if (error?.identifier === "channel") return message.channel.send(`No channel called '${Util.escapeMarkdown(error.parameter)}' found.`);
+
+    await this.context.client.db.set(message.guild.id, {
+      mod_log_channel_id: value.id,
+    });
+
+    return message.channel.send(`Set Moderation Log channel to **${value.name}**`);
+  }
+
+  async prefix(message, args) {
+    const { value, error } = await args.pickResult("string");
+
+    if (error?.identifier === "argsMissing") return message.channel.send(`No prefix provided.`);
+
+    await this.context.client.db.set(message.guild.id, {
+      command_prefix: value,
+    });
+
+    return message.channel.send(`Set Command Prefix to **${Util.escapeMarkdown(value)}**`);
+  }
+
+  async filterinvites(message, args) {
+    const { value, error } = await args.pickResult("boolean");
+
+    if (error?.identifier === "argsMissing") return message.channel.send(`No boolean provided.`);
+    if (error?.identifier === "boolean") return message.channel.send(`'${Util.escapeMarkdown(error.parameter)}' did not resolve to a boolean.`);
+
+    await this.context.client.db.set(message.guild.id, {
+      invite_filter: value,
+    });
+
+    return message.channel.send(`**${value ? "Enabled" : "Disabled"}** Invite Filtering`);
+  }
+
+  async show(message) {
+    const config = this.context.client.db.getGuild(message.guild.id);
 
     const configMessage = [];
 
-    const modRole = message.guild.roles.resolve(config.mod_role_id);
-    const jailRole = message.guild.roles.resolve(config.jail_role_id);
-    const solitaryRole = message.guild.roles.resolve(config.solitary_role_id);
-    const modlogChannel = message.guild.channels.resolve(config.mod_log_channel_id);
-    const prefix = this.context.client.fetchPrefix(message);
+    if (!config.modrole) configMessage.push(`**modrole**: not set`);
+    else configMessage.push(`**modrole**: \`${config.modrole.name}\` (${config.modrole.id})`);
 
-    if (!config.mod_role_id && !modRole) configMessage.push(`**modrole**: not set`);
-    else if (config.mod_role_id && !modRole) configMessage.push(`**modrole**: \`${config.mod_role_id}\` used to exist but does not anymore`);
-    else if (config.mod_role_id && modRole) configMessage.push(`**modrole**: \`${modRole.name}\` (${modRole.id})`);
+    if (!config.jailrole) configMessage.push(`**jailrole**: not set`);
+    else configMessage.push(`**jailrole**: \`${config.jailrole.name}\` (${config.jailrole.id})`);
 
-    if (!config.jail_role_id && !jailRole) configMessage.push(`**jailrole**: not set`);
-    else if (config.jail_role_id && !jailRole) configMessage.push(`**jailrole**: \`${config.jail_role_id}\` used to exist but does not anymore`);
-    else if (config.jail_role_id && jailRole) configMessage.push(`**jailrole**: \`${jailRole.name}\` (${jailRole.id})`);
+    if (!config.solitaryrole) configMessage.push(`**solitaryrole**: not set`);
+    else configMessage.push(`**solitaryrole**: \`${config.solitaryrole.name}\` (${config.solitaryrole.id})`);
 
-    if (!config.solitary_role_id && !solitaryRole) configMessage.push(`**solitaryrole**: not set`);
-    else if (config.solitary_role_id && !solitaryRole) configMessage.push(`**solitaryrole**: \`${config.solitary_role_id}\` used to exist but does not anymore`);
-    else if (config.solitary_role_id && solitaryRole) configMessage.push(`**solitaryrole**: \`${solitaryRole.name}\` (${solitaryRole.id})`);
+    if (!config.modlog) configMessage.push(`**modlog**: not set`);
+    else configMessage.push(`**modlog**: \`${config.modlog.name}\` (${config.modlog.id})`);
 
-    if (!config.mod_log_channel_id && !modlogChannel) configMessage.push(`**modlog**: not set`);
-    else if (config.mod_log_channel_id && !modlogChannel) configMessage.push(`**modlog**: \`${config.mod_log_channel_id}\` used to exist but does not anymore`);
-    else if (config.mod_log_channel_id && modlogChannel) configMessage.push(`**modlog**: \`${modlogChannel.name}\` (${modlogChannel.id})`);
+    configMessage.push(`**filterinvites**: \`${config.filterinvites}\``);
 
-    if (!config.invite_filter) configMessage.push(`**filterinvites**: \`false\``);
-    else if (config.invite_filter) configMessage.push(`**filterinvites**: \`true\``);
-
-    configMessage.push(`**prefix**: \`${prefix}\``);
+    configMessage.push(`**prefix**: \`${this.context.client.fetchPrefix(message)}\``);
 
     return message.channel.send(configMessage);
   }

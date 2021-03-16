@@ -6,12 +6,9 @@ class ModeratorOnlyPrecondition extends Precondition {
   }
 
   async run(message) {
-    const { mod_role_id } = this.context.client.db.get(message.guild.id) || {};
+    const { modrole } = this.context.client.db.getGuild(message.guild.id);
 
-    // because message.member is not always available
-    const member = await message.guild?.members?.fetch(message.author);
-
-    if (member?.roles?.cache?.has(mod_role_id)) return this.ok();
+    if (message.member.roles?.cache?.has(modrole.id)) return this.ok();
     else return this.error({ identifier: "ModeratorOnly", message: "Only a moderator can use this command." });
   }
 }

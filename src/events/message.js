@@ -12,6 +12,10 @@ class MessageCreateEvent extends Event {
 
     if (!invite_filter) return;
 
+    const { success: isMod } = await message.client.stores.get("preconditions").get("ModeratorOnly").run(message);
+
+    if (isMod) return;
+
     const matches = message.content.matchAll(/discord(?:(?:app)?\.com\/invite|\.gg(?:\/invite)?)\/([\w-]{2,255})/gis);
 
     for (const match of matches) {
